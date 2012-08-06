@@ -1,2 +1,5 @@
 *.project
 .setting/
+*.pptx
+*.ppt
+*.pdf
