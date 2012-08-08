@@ -1,0 +1,5 @@
+/**
+ * @author DZ
+ */
+
+alert(CONTROL);

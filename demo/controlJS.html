@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+		Remove this if you use the .htaccess -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<title>controlJS</title>
+		<meta name="description" content="" />
+		<meta name="generator" content="Studio 3 http://aptana.com/" />
+		<meta name="author" content="DZ" />
+		<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+		<!-- Replace favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<script src="../js/control.js"></script>
+		<script data-cjssrc="../js/demo-control-1.js" type="text/cjs"></script>
+		<script data-cjssrc="../js/demo-control-2.js" type="text/cjs"></script>
+		<script data-cjssrc="../js/demo-control-2.js" type="text/cjs"></script>
+	</head>
+	<body>
+		<div id="ls-page">
+			<header>
+				<h1>controlJS</h1>
+			</header>
+			
+			<section>
+				<h2>controlJS特点</h2>
+				<p>
+					ControlJS是由Steve Souners开发的脚本加载器，ControlJS改变了页面中脚本原来的同步加载和执行方式，改用异步下载JS文件而不解析执行，直到window.onload时解析并执行javascript。连ControlJS本身都采用异步方式加载，减少了脚本对页面其它资源的阻塞和渲染。ControlJS并行加载所有脚本，脚本之间不能有顺序依赖关系。
+
+				</p>
+				<p>只是根据文件路径异步加载js，各文件之间不能有依赖关系</p>
+				<p>并没有解决模块加载问题，只是把js文件异步下载而已</p>
+				<p>没有解决重复加载问题</p>
+			</section>
+			
+		</div>
+	</body>
+</html>
