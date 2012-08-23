@@ -1,12 +1,36 @@
 /**
  * @author chishang.lcw
  */
+var LJS={};
 (function(exports){
-	var _LJS={
-	},
-	_log=function(mes){
+	var _log=function(mes){
 		console.log&&console.log(mes);
 	},
+	_each=function (object, fn, context) {
+            if (object) {
+                var key,
+                    val,
+                    i = 0,
+                    length = object && object.length,
+                    isObj = length === undefined || typeof(object) === 'function';
+
+                context = context || window;
+
+                if (isObj) {
+                    for (key in object) {
+                        // can not use hasOwnProperty
+                        if (fn.call(context, object[key], key, object) === FALSE) {
+                            break;
+                        }
+                    }
+                } else {
+                    for (val = object[0];
+                         i < length && fn.call(context, val, i, object) !==false; val = object[++i]) {
+                    }
+                }
+            }
+            return object;
+        },
 	 /**
      * Copies all the properties of s to r.
      * @param deep {boolean} whether recursive mix if encounter object
@@ -68,36 +92,53 @@
 
         return o && toString.call(o) === '[object Object]' && 'isPrototypeOf' in o;
     };
-    mix(_LJS,{
+     //===========================================================
+    //公用函数
+    //===========================================================
+    mix(exports,{
     	_global:{
-    		definedmods:[],
+    		definedmods:{},
     		requiredmods:[],
     		loadedmods:[]
     	},
     	//版本
     	vertion:"1.0",
     	//日志输出
-    	log:_log
+    	log:_log,
+    	each:_each,
+    	mix:mix,
+    	isArray:_isArray,
+    	isPlainObject:_isPlainObject
     	
     });
-    mix(_LJS,{
+    //===========================================================
+    //模块的定义、添加和使用
+    //===========================================================
+    mix(exports,{
     	
     	/**
     	 * 定义模块
+    	 * @param {Object} config 模块定义参数
     	 */
     	define:function(config){
-    		var self=this;
-    		var _config={
+    		var self=this,
+    		definedmods=self._global.definedmods,
+    		_config={
     			charset:"utf-8",
-    			combine:false,
-    			
+    			combine:false
     		};
     		mix(config,_config,false);
-    		
+    		self.config=config;
+    		var mods=config.mods;
+    		self.each(mods,function(val,key,o){
+    			definedmods[val.name]=val;
+    		});
     		
     	},
     	/**
     	 * 添加模块
+    	 * @param {String} name 模块名
+    	 * @param {Function} fn 回调函数
     	 */
     	add:function(name,fn){
     		var self=this,
@@ -108,16 +149,53 @@
     			callback:fn
     		};
     		
-    		
     	},
     	/**
     	 * 使用模块
+    	 * @param {String/Array} name 模块名
+    	 * @param {Function} fn 回调函数
     	 */
     	use:function(mod,fn){
-    		
+    		var self=this;
+    		self.load(mod,fn);
     	}
     });
-	exports=_LJS;
+     //===========================================================
+    //文件的加载
+    //===========================================================
+    mix(exports,{
+    	/**
+    	 * 查找模块
+ 		 * @param {Object} arr
+    	 */
+    	load:function(arr){
+    		var self=this;
+    		self.each(arr,function(val,key,o){   			
+    			self._load(val);
+    		});
+    		
+    	},
+    	/**
+    	 * 查找模块
+ 		 * @param {Object} name
+    	 */
+    	_load:function(name){
+    		var self=this,
+    		definedmods=self._global.definedmods;
+    		if (name in definedmods) {
+    			var curScript=definedmods[name],
+    			root=self.config.root;
+    			
+    			self.log(definedmods[name]);
+    			
+    		};
+    	},
+    	loadScript:function(url){
+    		var script= document.createElement('script');
+			script.src = url;
+			document.body.appendChild(script);
+    	}
+    })
 })(LJS);
 
 

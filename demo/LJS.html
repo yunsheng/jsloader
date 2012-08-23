@@ -47,12 +47,19 @@
 			LJS.define({
 				charset:"gbk",
 				root:"http://yinghuo.com/",
-				mods:[
-					{
+				mods:[{
 						name:"common",
 						path:"o/js/common.js"
+				},{
+						name:"area",
+						path:"o/js/area.js"
 					}
 				]
+			});
+		</script>
+		<script>
+			LJS.use(['common','area'],function(L){
+				
 			});
 		</script>
 	</body>
