@@ -48,18 +48,28 @@
 				charset:"gbk",
 				root:"http://yinghuo.com/",
 				mods:[{
+					name:"kissy",
+					path:"s/kissy/1.2.0/kissy-min.js"
+				},
+				{
 						name:"common",
-						path:"o/js/common.js"
+						path:"o/js/common.js",
+						requires:["kissy"]
 				},{
 						name:"area",
 						path:"o/js/area.js"
-					}
-				]
+				},{
+					name:"jquery",
+					fullpath:"http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js"
+				},{
+					name:'loaddemo',
+					path:'test/load-demo.js'
+				}]
 			});
 		</script>
 		<script>
-			LJS.use(['common','area'],function(L){
-				
+			LJS.use(['loaddemo'],function(L){
+				L.log(L);
 			});
 		</script>
 	</body>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @author chishang.lcw
  */
 var LJS = {};
@@ -79,7 +79,7 @@ var LJS = {};
                 if (isObj) {
                     for (key in object) {
                         // can not use hasOwnProperty
-                        if (fn.call(context, object[key], key, object) === FALSE) {
+                        if (fn.call(context, object[key], key, object) === false) {
                             break;
                         }
                     }
@@ -120,10 +120,10 @@ var LJS = {};
     //===========================================================
     exports.mix(exports, {
         _global: {
-            definedmods: {},
-            requiredmods: [],
-            loadedmods: [],
-            loadingmods:[]
+            definedMods: {},
+            requiredMods: {},
+            loadedMods: [],
+            loadingMods:[]
         },
         //版本
         vertion: "1.0"
@@ -141,7 +141,7 @@ var LJS = {};
     	 */
         define: function (config) {
             var exports = this,
-            definedmods = exports._global.definedmods,
+            definedMods = exports._global.definedMods,
             _config = {
                 charset: "utf-8",
                 combine: false
@@ -150,7 +150,7 @@ var LJS = {};
             exports.config = config;
             var mods = config.mods;
             exports.each(mods, function (val, key, o) {
-                definedmods[val.name] = val;
+                definedMods[val.name] = val;
             });
 
         },
@@ -161,12 +161,9 @@ var LJS = {};
     	 */
         add: function (name, fn) {
             var exports = this,
-            definedmods = exports._global.definedmods,
-            mod = {
-                name: name,
-                path: "",
-                callback: fn
-            };
+            requiredMods = exports._global.requiredMods;
+            requiredMods[name]["ismod"]=true;
+            requiredMods[name]["callback"]=fn;
 
         },
         /**
@@ -185,74 +182,120 @@ var LJS = {};
     exports.mix(exports, {
         /**
     	 * 查找模块
- 		 * @param {Object} arr
+ 		 * @param {Object} arr 加载模块列表
+ 		 * @param {Function} callback 模块加载完毕后的回调函数
     	 */
         load: function (arr,callback) {
             var  config = exports.config,
             global=exports._global,
-            definedmods = global.definedmods,
-            requiredmods=global.requiredmods;
-            exports.each(arr, function (val, key, o) {
-            	if(!exports.inArray(val,requiredmods)){
-            		requiredmods.push(val);
-            	}
-            });
-            
-			exports.each(requiredmods,function(val,key,o){	
-				 if (val in definedmods) {
-				 	exports._load(val,callback);
-				 }else{
-				 	exports.log("module " +val +" is not defined")
+            definedMods = global.definedMods,
+            requiredMods=global.requiredMods;
+            //判断是否已定义
+            exports.each(arr,function(val,key,o){	
+				 var relymods=[];
+				 if(val in definedMods){
+				 	if( !(val in requiredMods) ){
+					 	requiredMods[val]=definedMods[val];
+					 }
+				 }else {
+				 	exports.log("module " +val +" is not defined");
 				 }
 			});
+            exports.each(requiredMods, function (val, key, o) {
+            	var name=val['name'];
+            	exports.loadMod(name,function(){
+            		 var isloaded=true;
+	        		 exports.each(requiredMods,function(v,k,o){
+	        		 	var name=v["name"],
+	        		 	isLoaded=requiredMods[name]['isloaded'];
+	            		  	if(!isLoaded) {
+	            		  		isloaded=false;
+	            		  	} 
+	            	});
+            		isloaded&&callback(exports);
+            	});
+            });
+            
+			
         },
         /**
-    	 * 查找模块
+         * 查找依赖模块
+         * @param name 模块名称
+         * @return {Array/null} result 有依赖模块时返回数组，没有时返回null
+         */
+        findRelyMods:function(name){
+        	var config = exports.config,
+            global=exports._global,
+            definedMods = global.definedMods,
+            result=definedMods[name]["requires"];
+			return result;
+        },
+        /**
+         * 加载依赖模块
+         * @param name 待加载模块
+         * @param relymods 依赖模块
+         * @param {Function } 回调函数
+         */
+        loadRelyMods:function(name,relymods,callback){
+        	var config = exports.config,
+            global=exports._global,
+            requiredMods=global.requiredMods,
+            definedMods = global.definedMods;
+            exports.each(relymods, function (val, key, obj) {
+            	if(!(val in requiredMods)){
+            		requiredMods[val]=definedMods[val];
+            	}
+            	
+            	exports.loadMod(val,function(){
+            		var isloaded=true;
+            		  exports.each(relymods,function(v,k,o){
+            		  	
+	            		  	if(!requiredMods[v]['isloaded']) {
+	            		  		isloaded=false;
+	            		  	}
+	            		  	 
+	            		  });
+            		isloaded&&callback();
+            	});
+            	
+            });
+            
+        },
+        /**
+    	 * 加载模块
+    	 * @name loadMod
  		 * @param {Object} name
- 		 * @param {Function} 回调函数
+ 		 * @param {Function} callback 回调函数
     	 */
-        _load: function (name,callback) {
+        loadMod: function (name,callback) {
             var  config = exports.config,
             global=exports._global,
-            definedmods = global.definedmods,
-            requiredmods=global.requiredmods,
-            loadedmods=global.loadedmods,
-            loadingmods=global.loadingmods,
-            len=requiredmods.length,
+            definedMods = global.definedMods,
+            requiredMods=global.requiredMods,
+            loadedMods=global.loadedMods,
+            loadingMods=global.loadingMods,
             root = config.root,
-            curScript = definedmods[name],
+            curScript = definedMods[name],
             path = curScript["path"],
             fullpath = curScript["fullpath"],
             src = fullpath ? fullpath : root + path,
             startLoad=function(){
-            	
-            	exports.log("start load :"+name);
+            	loadingMods.push(name);
             	exports.loadScript(src,loadSuccess);
             },
             loadSuccess=function(){
-            	loadedmods.push(name);
-            	exports.log("loaded:"+name);           	
-            	if(loadedmods.length===requiredmods.length){
-            		exports.log("all module loaded");
-            		callback(exports);
-            	}
+            	loadedMods.push(name);
+            	requiredMods[name]["isloaded"]=true;
+            	exports.log("loaded:"+name);  
+            	requiredMods[name]["callback"]?requiredMods[name]["callback"](exports)&&callback():callback();
+           
             };
-            if(!exports.inArray(name,loadingmods)){
-            	loadingmods.push(name);
-            	if(curScript["requires"]){
-            		var requires=curScript["requires"];
-	            	exports.load(requires,function(){
-	            		exports.log(src);
-	            		exports.loadScript(src,startLoad);
-	            	});
-	            }else{
-	            	startLoad();
-	            }
-            	
+            if(!exports.inArray(name,loadingMods)){
+            	var relyMods=exports.findRelyMods(name);
+            	relyMods?exports.loadRelyMods(name,relyMods,function(){
+            		startLoad()
+            	}):startLoad();
             }
-            //requires();
-
-            
         },
         /**
          * 加载js文件
@@ -263,7 +306,6 @@ var LJS = {};
             var script = document.createElement('script');
             script.src = url;
             document.body.appendChild(script);
-            
             exports.scriptOnload(script,success)
             
         }
